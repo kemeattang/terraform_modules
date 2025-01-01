@@ -1,0 +1,41 @@
+name: Validate Terraform Modules with Checkov
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+
+      - name: Generate Checkov JSON Report
+        run: |
+          mkdir -p reports
+          checkov -d . --output json > reports/checkov-report.json
+
+      - name: Upload Checkov Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: checkov-report
+          path: reports/
