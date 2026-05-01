@@ -1,5 +1,5 @@
 module "iam" {
-  source = "../iam-role"
+  source = "git@github.com:kemeattang/terraform_modules.git//aws/iam-role?ref=v1.0.0"
   name   = "${local.name}-role"
 
   custom_role_trust_policy = jsonencode({

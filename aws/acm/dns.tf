@@ -1,5 +1,5 @@
 module "dns" {
-  source             = "../dns"
+  source             = "git@github.com:kemeattang/terraform_modules.git//aws/dns?ref=v1.0.0"
   create_hosted_zone = false
   domain             = var.domain
 
