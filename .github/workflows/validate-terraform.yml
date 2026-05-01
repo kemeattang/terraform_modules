@@ -35,7 +35,7 @@ jobs:
           checkov -d . --output json > reports/checkov-report.json
 
       - name: Upload Checkov Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: checkov-report
           path: reports/
