@@ -12,7 +12,7 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
-| [dns](#module\_dns) | ../dns | n/a |
+| [dns](#module\_dns) | git@github.com:kemeattang/terraform_modules.git//aws/dns | v1.0.0 |
 
 ## Resources
 

@@ -13,7 +13,7 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
-| [iam](#module\_iam) | ../iam-role | n/a |
+| [iam](#module\_iam) | git@github.com:kemeattang/terraform_modules.git//aws/iam-role | v1.0.0 |
 
 ## Resources
 
