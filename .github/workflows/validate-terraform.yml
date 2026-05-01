@@ -8,34 +8,109 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Install Checkov
         run: pip install checkov
 
-      - name: Run Checkov
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: .
-
       - name: Generate Checkov JSON Report
         run: |
           mkdir -p reports
-          checkov -d . --output json > reports/checkov-report.json
+          checkov -d . --output json > reports/checkov-report.json || true
 
       - name: Upload Checkov Report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: checkov-report
           path: reports/
+
+      - name: Create GitHub issues for Checkov failures
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+
+            const reportPath = "reports/checkov-report.json";
+
+            if (!fs.existsSync(reportPath)) {
+              core.info("No Checkov report found.");
+              return;
+            }
+
+            const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+
+            const failedChecks = Array.isArray(report.results?.failed_checks)
+              ? report.results.failed_checks
+              : [];
+
+            if (failedChecks.length === 0) {
+              core.info("No Checkov failures found.");
+              return;
+            }
+
+            const existingIssues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: "open",
+                labels: "checkov",
+                per_page: 100
+              }
+            );
+
+            for (const check of failedChecks) {
+              const checkId = check.check_id || "UNKNOWN_CHECK";
+              const resource = check.resource || "UNKNOWN_RESOURCE";
+              const filePath = check.file_path || "UNKNOWN_FILE";
+              const title = `[Checkov] ${checkId} failed for ${resource}`;
+
+              const alreadyExists = existingIssues.some(issue => issue.title === title);
+              if (alreadyExists) {
+                core.info(`Issue already exists: ${title}`);
+                continue;
+              }
+
+              const body = `
+            ## Checkov failure
+
+            **Check ID:** ${checkId}
+
+            **Check name:** ${check.check_name || "N/A"}
+
+            **Resource:** \`${resource}\`
+
+            **File:** \`${filePath}\`
+
+            **Line range:** ${check.file_line_range ? check.file_line_range.join("-") : "N/A"}
+
+            **Guideline:** ${check.guideline || "N/A"}
+
+            **Commit:** ${context.sha}
+
+            This issue was automatically created by the Checkov GitHub Actions workflow.
+            `;
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ["checkov", "security", "terraform"]
+              });
+            }

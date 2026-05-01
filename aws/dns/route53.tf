@@ -33,3 +33,7 @@ resource "aws_route53_record" "alias" {
     evaluate_target_health = var.evaluate_target_health
   }
 }
+
+resource "aws_route53_hosted_zone_dnssec" "this" {
+  hosted_zone_id = aws_route53_zone.this[0].id
+}
