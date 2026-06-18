@@ -10,7 +10,7 @@ Actions are secure, tenant-specific, versioned functions written in Node.js that
 
 ```hcl
 module "auth0_action" {
-  source = "git@github.com:kemeattang/terraform_modules.git//auth0/auth0_action/auth0_action?ref=auth0-v1.0.0"
+  source = "git@github.com:kemeattang/terraform_modules.git//auth0/auth0_action/auth0_action?ref=auth0-action-v1.0.0"
 
   name    = "My Action"
   runtime = "node16"
@@ -66,7 +66,7 @@ With this resource, you can bind actions to a trigger. Once actions are created 
 
 ```hcl
 module "auth0_trigger_action" {
-  source = "git@github.com:kemeattang/terraform_modules.git//auth0/auth0_action/auth0_trigger_action?ref=auth0-v1.0.0"
+  source = "git@github.com:kemeattang/terraform_modules.git//auth0/auth0_action/auth0_trigger_action?ref=auth0-action-v1.0.0"
 
   trigger = "post-login"
 
